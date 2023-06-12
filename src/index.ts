@@ -1,7 +1,7 @@
 import express from 'express';
 import { Request, Response } from 'express';
 import * as cron from 'node-cron';
-import { Service } from '../utils/service';
+import { Service } from './utils/service';
 
 const service = new Service();
 
