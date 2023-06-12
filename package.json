@@ -7,7 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "generate-tsbuild": "rm -rf ./dist && tsc",
     "serve": "nodemon --ext ts,js --exec \"node dist/index.js\"",
-    "local": "npm run generate-tsbuild && tsc-watch --onSuccess \"npm run serve\""
+    "local": "npm run generate-tsbuild && tsc-watch --onSuccess \"npm run serve\"",
+    "build": "npm run generate-tsbuild"
   },
   "author": "",
   "license": "ISC",
