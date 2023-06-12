@@ -1,15 +1,36 @@
-import { flightInformation, getFlightData } from "./api";
+import { flightInformation, getFlightData } from "../utils/api";
+
+import * as cron from 'node-cron';
+import { TelegramService } from "./TService";
+import { numberToCurrency } from "../utils/number";
+import { dateToFormat } from "../utils/date";
 
 export class Service {
-  private securityToken = '';
-  private minimumDepartures: flightInformation[] = [];
-  private minimumReturns: flightInformation[] = [];
-  private minimumValueDeparture = 0;
-  private minimumValueReturn = 0;
+  private securityToken;
+  private minimumDepartures: flightInformation[];
+  private minimumReturns: flightInformation[];
+  private minimumValueDeparture: flightInformation;
+  private minimumValueReturn: flightInformation;
+  private telegramService: TelegramService;
 
-  public setMinimumDepartures(
+  constructor() {
+    //cron each 30 minutes
+    // cron.schedule('*/30 * * * *', async () => {
+    cron.schedule('*/30 * * * * *', async () => {
+      await this.setDataResponse();
+    });
+
+    this.telegramService = new TelegramService();
+    this.securityToken = '';
+    this.minimumDepartures = [];
+    this.minimumReturns = [];
+    this.minimumValueDeparture = {} as flightInformation;
+    this.minimumValueReturn = {} as flightInformation;
+  }
+
+  public async setMinimumDepartures(
     departuresFromRequest: flightInformation[],
-  ): void {
+  ): Promise<void> {
     if (this.minimumDepartures.length === 0) this.minimumDepartures = departuresFromRequest;
     else {
       //compare this.minimumDepartures with minimumDepartures by day and the lowest price and store in this.minimumDepartures
@@ -29,12 +50,15 @@ export class Service {
     });
 		
     // check if minimumValueDeparture must be updated
-    if (this.minimumValueDeparture === 0) {
-      this.minimumValueDeparture = this.minimumDepartures[0].total;
+    if (Object.keys(this.minimumValueDeparture).length === 0) {
+      this.minimumValueDeparture = this.minimumDepartures[0];
+
+      await this.telegramService.sendMessage(`Nuevo vuelo de salida: \n Fecha: ${dateToFormat(this.minimumDepartures[0].departure)} \n Precio: ${numberToCurrency(this.minimumDepartures[0].total)}`);
     } else {
-      if (this.minimumValueDeparture > this.minimumDepartures[0].total) {
-        // Send message to the user
-        this.minimumValueDeparture = this.minimumDepartures[0].total;
+      if (this.minimumValueDeparture.total > this.minimumDepartures[0].total) {
+        await this.telegramService.sendMessage(`Nuevo vuelo de salida: \n Fecha: ${dateToFormat(this.minimumDepartures[0].departure)} \n Precio: ${numberToCurrency(this.minimumDepartures[0].total)}`);
+
+        this.minimumValueDeparture = this.minimumDepartures[0];
       }
     }
   }
@@ -61,12 +85,15 @@ export class Service {
     });
 
     // check if minimumValueReturn must be updated
-    if (this.minimumValueReturn === 0) {
-      this.minimumValueReturn = this.minimumReturns[0].total;
+    if (Object.keys(this.minimumValueReturn).length === 0) {
+      this.minimumValueReturn = this.minimumReturns[0];
+
+      this.telegramService.sendMessage(`Nuevo vuelo de vuelta: \n Fecha: ${dateToFormat(this.minimumReturns[0].departure)} \n Precio: ${numberToCurrency(this.minimumReturns[0].total)}`);
     } else {
-      if (this.minimumValueReturn > this.minimumReturns[0].total) {
-        // Send message to the user
-        this.minimumValueReturn = this.minimumReturns[0].total;
+      if (this.minimumValueReturn.total > this.minimumReturns[0].total) {
+        this.telegramService.sendMessage(`Nuevo vuelo de vuelta: \n Fecha: ${dateToFormat(this.minimumReturns[0].departure)} \n Precio: ${numberToCurrency(this.minimumReturns[0].total)}`);
+
+        this.minimumValueReturn = this.minimumReturns[0];
       }
     }
   }

@@ -92,7 +92,7 @@ export async function getFlightData(
     });
   });
 	
-  console.log({vuelosSalida: departureFlights, vuelosRegreso: returnFlights});
+  // console.log({vuelosSalida: departureFlights, vuelosRegreso: returnFlights});
   console.log({securityToken});
 
   return {

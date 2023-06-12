@@ -1,0 +1,1 @@
+{"version":3,"file":"number.js","sourceRoot":"","sources":["../../src/utils/number.ts"],"names":[],"mappings":";;;AAAA,SAAgB,gBAAgB,CAC9B,MAAc;IAEd,MAAM,SAAS,GAAG,IAAI,IAAI,CAAC,YAAY,CAAC,OAAO,EAAE;QAC/C,KAAK,EAAE,UAAU;QACjB,QAAQ,EAAE,KAAK;QACf,qBAAqB,EAAE,CAAC;KACzB,CAAC,CAAC;IAEH,OAAO,SAAS,CAAC,MAAM,CAAC,MAAM,CAAC,CAAC;AAClC,CAAC;AAVD,4CAUC"}

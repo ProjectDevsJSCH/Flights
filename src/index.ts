@@ -1,16 +1,8 @@
 import express from 'express';
 import { Request, Response } from 'express';
-import * as cron from 'node-cron';
-import { Service } from './utils/service';
+import { Service } from './services/WService';
 
 const service = new Service();
-
-//cron each 30 minutes
-// cron.schedule('*/30 * * * *', async () => {
-cron.schedule('*/30 * * * * *', async () => {
-  await service.setDataResponse();
-});
-
 const DEFAULT_PORT = 8080;
 const PORT_NUMBER = process.env.PORT || DEFAULT_PORT;
 const app = express();
