@@ -14,6 +14,10 @@ cron.schedule('*/30 * * * * *', async () => {
 const PORT_NUMBER = 80;
 const app = express();
 
+app.get('/', (req: Request, res: Response) => {
+  res.send('Alive');
+});
+
 app.get('/last', (req: Request, res: Response) => {
   res.send(service.getData());
 });
