@@ -11,7 +11,8 @@ cron.schedule('*/30 * * * * *', async () => {
   await service.setDataResponse();
 });
 
-const PORT_NUMBER = 8080;
+const DEFAULT_PORT = 8080;
+const PORT_NUMBER = process.env.PORT || DEFAULT_PORT;
 const app = express();
 
 app.get('/', (req: Request, res: Response) => {
