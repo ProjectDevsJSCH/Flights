@@ -5,10 +5,10 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "generate-tsbuild": "rm -rf ./dist && tsc",
+    "build": "rm -rf ./dist && tsc",
     "serve": "nodemon --ext ts,js --exec \"node dist/index.js\"",
-    "local": "npm run generate-tsbuild && tsc-watch --onSuccess \"npm run serve\"",
-    "build": "npm run generate-tsbuild"
+    "local": "npm run build && tsc-watch --onSuccess \"npm run serve\"",
+    "start": "node dist/index.js"
   },
   "author": "",
   "license": "ISC",
