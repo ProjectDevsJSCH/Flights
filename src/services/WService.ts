@@ -15,8 +15,8 @@ export class Service {
 
   constructor() {
     //cron each 30 minutes
-    cron.schedule('*/30 * * * *', async () => {
-    // cron.schedule('*/30 * * * * *', async () => {
+    // cron.schedule('*/30 * * * *', async () => {
+    cron.schedule('*/5 * * * * *', async () => {
       await this.setDataResponse();
     });
 
@@ -88,7 +88,6 @@ export class Service {
     } else {
       if (this.minimumValueReturn.total > this.minimumReturns[0].total) {
         this.telegramService.sendMessage(`Nuevo vuelo de vuelta más barato: \n Fecha: ${dateToFormat(this.minimumReturns[0].departure)} \n Precio: ${numberToCurrency(this.minimumReturns[0].total)}`);
-
         this.minimumValueReturn = this.minimumReturns[0];
       }
     }

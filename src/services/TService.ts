@@ -15,9 +15,9 @@ export class TelegramService {
     try {
       const result = await this.bot.sendMessage(this.chatId, message);
 
-      console.log('result', result);
+      // console.log('result', result);
     } catch (error) {
-      console.log('error', error);
+      // console.log('error', error);
 
       return false;
     }

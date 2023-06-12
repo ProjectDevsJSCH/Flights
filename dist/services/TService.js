@@ -13,10 +13,8 @@ class TelegramService {
     async sendMessage(message) {
         try {
             const result = await this.bot.sendMessage(this.chatId, message);
-            console.log('result', result);
         }
         catch (error) {
-            console.log('error', error);
             return false;
         }
         return true;

@@ -93,7 +93,7 @@ export async function getFlightData(
   });
 	
   // console.log({vuelosSalida: departureFlights, vuelosRegreso: returnFlights});
-  console.log({securityToken});
+  // console.log({securityToken});
 
   return {
     securityToken: response.data.response.token,

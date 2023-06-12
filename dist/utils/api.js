@@ -66,7 +66,6 @@ async function getFlightData(securityToken = '') {
             returnFlights.push({ total, departure });
         });
     });
-    console.log({ securityToken });
     return {
         securityToken: response.data.response.token,
         isExpired: response.data.response.vueloVuelta[0].infoVuelo.vuelos.length === 0,
