@@ -3,6 +3,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.dateToFormat = void 0;
 function dateToFormat(date) {
     const formatter = new Intl.DateTimeFormat('es-CO', {
+        hour: 'numeric',
+        minute: 'numeric',
+        second: 'numeric',
         month: 'long',
         day: 'numeric',
         year: 'numeric',

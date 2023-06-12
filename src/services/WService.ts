@@ -15,8 +15,8 @@ export class Service {
 
   constructor() {
     //cron each 30 minutes
-    // cron.schedule('*/30 * * * *', async () => {
-    cron.schedule('*/30 * * * * *', async () => {
+    cron.schedule('*/30 * * * *', async () => {
+    // cron.schedule('*/30 * * * * *', async () => {
       await this.setDataResponse();
     });
 
@@ -52,11 +52,9 @@ export class Service {
     // check if minimumValueDeparture must be updated
     if (Object.keys(this.minimumValueDeparture).length === 0) {
       this.minimumValueDeparture = this.minimumDepartures[0];
-
-      await this.telegramService.sendMessage(`Nuevo vuelo de salida: \n Fecha: ${dateToFormat(this.minimumDepartures[0].departure)} \n Precio: ${numberToCurrency(this.minimumDepartures[0].total)}`);
     } else {
       if (this.minimumValueDeparture.total > this.minimumDepartures[0].total) {
-        await this.telegramService.sendMessage(`Nuevo vuelo de salida: \n Fecha: ${dateToFormat(this.minimumDepartures[0].departure)} \n Precio: ${numberToCurrency(this.minimumDepartures[0].total)}`);
+        await this.telegramService.sendMessage(`Nuevo vuelo de salida más barato: \n Fecha: ${dateToFormat(this.minimumDepartures[0].departure)} \n Precio: ${numberToCurrency(this.minimumDepartures[0].total)}`);
 
         this.minimumValueDeparture = this.minimumDepartures[0];
       }
@@ -87,11 +85,9 @@ export class Service {
     // check if minimumValueReturn must be updated
     if (Object.keys(this.minimumValueReturn).length === 0) {
       this.minimumValueReturn = this.minimumReturns[0];
-
-      this.telegramService.sendMessage(`Nuevo vuelo de vuelta: \n Fecha: ${dateToFormat(this.minimumReturns[0].departure)} \n Precio: ${numberToCurrency(this.minimumReturns[0].total)}`);
     } else {
       if (this.minimumValueReturn.total > this.minimumReturns[0].total) {
-        this.telegramService.sendMessage(`Nuevo vuelo de vuelta: \n Fecha: ${dateToFormat(this.minimumReturns[0].departure)} \n Precio: ${numberToCurrency(this.minimumReturns[0].total)}`);
+        this.telegramService.sendMessage(`Nuevo vuelo de vuelta más barato: \n Fecha: ${dateToFormat(this.minimumReturns[0].departure)} \n Precio: ${numberToCurrency(this.minimumReturns[0].total)}`);
 
         this.minimumValueReturn = this.minimumReturns[0];
       }
