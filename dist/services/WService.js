@@ -31,7 +31,7 @@ const number_1 = require("../utils/number");
 const date_1 = require("../utils/date");
 class Service {
     constructor() {
-        cron.schedule('*/5 * * * * *', async () => {
+        cron.schedule('*/30 * * * *', async () => {
             await this.setDataResponse();
         });
         this.telegramService = new TService_1.TelegramService();
