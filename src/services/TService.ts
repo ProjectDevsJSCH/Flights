@@ -13,15 +13,13 @@ export class TelegramService {
     message: string,
   ): Promise<boolean> {
     try {
-      const result = await this.bot.sendMessage(this.chatId, message);
-
-      // console.log('result', result);
+      await this.bot.sendMessage(this.chatId, message);
     } catch (error) {
-      // console.log('error', error);
+      console.log('error', error);
 
       return false;
     }
-
+    
     return true;
   }
 }

@@ -12,9 +12,10 @@ class TelegramService {
     }
     async sendMessage(message) {
         try {
-            const result = await this.bot.sendMessage(this.chatId, message);
+            await this.bot.sendMessage(this.chatId, message);
         }
         catch (error) {
+            console.log('error', error);
             return false;
         }
         return true;
