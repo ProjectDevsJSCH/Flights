@@ -5,8 +5,8 @@ export class TelegramService {
   private chatId: string;
 
   constructor() {
-    this.bot = new TelegramBot('5933348337:AAHMtNEhcHuP0z1WjdFdniVGOGqpGQzz-N0', { polling: true });
-    this.chatId = '1140940947';
+    this.bot = new TelegramBot(process.env.TELEGRAM_BOT, { polling: true });
+    this.chatId = process.env.CHAT_ID;
   }
 
   public async sendMessage(
