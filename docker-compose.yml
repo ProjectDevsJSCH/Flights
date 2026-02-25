@@ -6,7 +6,7 @@ services:
     container_name: skytracker-db
     environment:
       POSTGRES_USER: skytracker
-      POSTGRES_PASSWORD: skytracker_password
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: skytracker_db
     ports:
       - "5433:5432"
@@ -20,8 +20,7 @@ services:
     ports:
       - "3001:3001"
     environment:
-      - DATABASE_URL=postgresql://skytracker:skytracker_password@db:5432/skytracker_db?schema=public
-      - NODE_ENV=development
+      - DATABASE_URL=postgresql://skytracker:${POSTGRES_PASSWORD}@db:5432/skytracker_db?schema=public
     env_file:
       - .env
     depends_on:
