@@ -1,0 +1,35 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model TrackingConfig {
+  id          Int      @id @default(autoincrement())
+  origin      String
+  destination String
+  startDate   String
+  endDate     String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  priceHistory PriceHistory[]
+}
+
+model PriceHistory {
+  id             Int      @id @default(autoincrement())
+  configId       Int
+  dateChecked    String   // Date the flight is FOR (e.g., "2026-03-01")
+  cheapestPrice  Int      // in COP
+  currency       String   @default("COP")
+  airline        String
+  departureTime  String
+  availableSeats Int      @default(0)
+  recordedAt     DateTime @default(now()) // When this price was found
+
+  config TrackingConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
+}

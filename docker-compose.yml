@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: skytracker-db
+    environment:
+      POSTGRES_USER: skytracker
+      POSTGRES_PASSWORD: skytracker_password
+      POSTGRES_DB: skytracker_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  server:
+    build:
+      context: ./server
+    container_name: skytracker-server
+    ports:
+      - "3001:3001"
+    environment:
+      - DATABASE_URL=postgresql://skytracker:skytracker_password@db:5432/skytracker_db?schema=public
+      - NODE_ENV=development
+    env_file:
+      - .env
+    depends_on:
+      - db
+
+  client:
+    build:
+      context: ./client
+    container_name: skytracker-client
+    ports:
+      - "80:80"
+    depends_on:
+      - server
+
+volumes:
+  postgres_data:
