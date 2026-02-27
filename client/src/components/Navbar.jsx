@@ -4,13 +4,13 @@ export default function Navbar() {
 	const { formatted, date } = useClock();
 
 	return (
-		<nav className="navbar" role="navigation" aria-label="Main navigation">
+		<nav className="navbar" role="navigation" aria-label="Navegación principal">
 			<div className="navbar-inner">
 				<div className="navbar-brand">
 					<span className="navbar-logo">🛫</span>
 					<div>
 						<div className="navbar-title">SkyTracker</div>
-						<div className="navbar-subtitle">Flight Booking & Prices</div>
+						<div className="navbar-subtitle">Reservas y Precios de Vuelos</div>
 					</div>
 				</div>
 

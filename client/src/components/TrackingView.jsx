@@ -48,15 +48,15 @@ export default function TrackingView({ cities = [] }) {
 		const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
 		if (origin === destination) {
-			alert('Origin and destination cannot be the same');
+			alert('El origen y el destino no pueden ser iguales');
 			return;
 		}
 		if (start > end) {
-			alert('End date must be after start date');
+			alert('La fecha final debe ser posterior a la fecha inicial');
 			return;
 		}
 		if (diffDays > 6) {
-			alert('To protect API quota, the maximum date range for background tracking is 7 days.');
+			alert('Para proteger la cuota de la API, el rango máximo para monitoreo en segundo plano es de 7 días.');
 			return;
 		}
 
@@ -68,10 +68,10 @@ export default function TrackingView({ cities = [] }) {
 				body: JSON.stringify({ origin, destination, startDate, endDate })
 			});
 			if (res.ok) {
-				alert('Tracking configuration updated! The background job will run hourly.');
+				alert('Configuración actualizada. El proceso en segundo plano se ejecutará cada hora.');
 				fetchHistory(); // refresh
 			} else {
-				alert('Error updating configuration');
+				alert('Error al actualizar la configuración');
 			}
 		} catch (err) {
 			console.error(err);
@@ -89,7 +89,7 @@ export default function TrackingView({ cities = [] }) {
 	};
 
 	const formatTime = (isoString) => {
-		return new Date(isoString).toLocaleString('en-US', {
+		return new Date(isoString).toLocaleString('es-CO', {
 			month: 'short', day: 'numeric',
 			hour: 'numeric', minute: '2-digit', hour12: true
 		});
@@ -98,8 +98,8 @@ export default function TrackingView({ cities = [] }) {
 	return (
 		<div className="tracking-view glass-card" style={{ padding: 'var(--space-2xl)', marginTop: '20px' }}>
 			<div className="section-header">
-				<h2 className="section-title">🕒 Hourly Price Tracker</h2>
-				<p style={{ color: 'var(--text-secondary)' }}>Configure a route to automatically search every hour for price drops in the background.</p>
+				<h2 className="section-title">🕒 Monitor de precios por hora</h2>
+				<p style={{ color: 'var(--text-secondary)' }}>Configura una ruta para buscar automáticamente cada hora caídas de precio en segundo plano.</p>
 			</div>
 
 			{/* Config Form */}
@@ -107,7 +107,7 @@ export default function TrackingView({ cities = [] }) {
 				<div className="search-form-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr auto' }}>
 					{/* Origin */}
 					<div>
-						<label className="search-label">Origin</label>
+						<label className="search-label">Origen</label>
 						<div className="select-wrapper">
 							<select value={origin} onChange={(e) => setOrigin(e.target.value)} className="search-input">
 								{cities.map(c => <option key={`orig-${c.code}`} value={c.code}>{c.city} ({c.code})</option>)}
@@ -117,7 +117,7 @@ export default function TrackingView({ cities = [] }) {
 
 					{/* Destination */}
 					<div>
-						<label className="search-label">Destination</label>
+						<label className="search-label">Destino</label>
 						<div className="select-wrapper">
 							<select value={destination} onChange={(e) => setDestination(e.target.value)} className="search-input">
 								{cities.map(c => <option key={`dest-${c.code}`} value={c.code}>{c.city} ({c.code})</option>)}
@@ -127,7 +127,7 @@ export default function TrackingView({ cities = [] }) {
 
 					{/* Start Date */}
 					<div>
-						<label className="search-label">Start Date</label>
+						<label className="search-label">Fecha inicial</label>
 						<input
 							type="date"
 							value={startDate}
@@ -140,7 +140,7 @@ export default function TrackingView({ cities = [] }) {
 
 					{/* End Date (Max 7 days) */}
 					<div>
-						<label className="search-label">End Date (Max 7 Days)</label>
+						<label className="search-label">Fecha final (máx. 7 días)</label>
 						<input
 							type="date"
 							value={endDate}
@@ -154,7 +154,7 @@ export default function TrackingView({ cities = [] }) {
 					{/* Save */}
 					<div style={{ display: 'flex', alignItems: 'flex-end' }}>
 						<button type="submit" className="search-btn" disabled={isLoading}>
-							{isLoading ? 'Saving...' : 'Save & Track'}
+							{isLoading ? 'Guardando...' : 'Guardar y monitorear'}
 						</button>
 					</div>
 				</div>
@@ -164,11 +164,11 @@ export default function TrackingView({ cities = [] }) {
 			{config && (
 				<div className="tracking-history">
 					<h3 style={{ marginBottom: '1rem', color: 'var(--text-primary)' }}>
-						Lowest Expected Prices for {config.origin} → {config.destination}
+						Precios esperados más bajos para {config.origin} → {config.destination}
 					</h3>
 
 					{Object.keys(history).length === 0 ? (
-						<p style={{ color: 'var(--text-muted)' }}>Waiting for tracker to fetch data...</p>
+						<p style={{ color: 'var(--text-muted)' }}>Esperando que el monitor obtenga datos...</p>
 					) : (
 						<div style={{ display: 'grid', gap: '1rem' }}>
 							{Object.keys(history).sort().map(flightDate => {
@@ -181,15 +181,15 @@ export default function TrackingView({ cities = [] }) {
 								return (
 									<div key={flightDate} style={{ background: 'var(--bg-card)', padding: '1rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 										<div>
-											<strong style={{ display: 'block', fontSize: '1.2rem', marginBottom: '4px' }}>Date: {flightDate}</strong>
-											<span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Best Option: {best?.airline} at {best?.departureTime}</span>
+											<strong style={{ display: 'block', fontSize: '1.2rem', marginBottom: '4px' }}>Fecha: {flightDate}</strong>
+											<span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Mejor opción: {best?.airline} a las {best?.departureTime}</span>
 										</div>
 										<div style={{ textAlign: 'right' }}>
 											<div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: 'var(--system-success)' }}>
 												{formatCOP(latest.cheapestPrice)}
 											</div>
 											<div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-												Last checked: {formatTime(latest.recordedAt)}
+												Última revisión: {formatTime(latest.recordedAt)}
 											</div>
 										</div>
 									</div>

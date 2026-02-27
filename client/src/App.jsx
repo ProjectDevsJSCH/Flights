@@ -28,14 +28,14 @@ export default function App() {
 			{/* Hero */}
 			<div className="app-container">
 				<div className="hero">
-					<div className="hero-eyebrow">✈ Powered by Amadeus</div>
+					<div className="hero-eyebrow">✈ Con tecnología de Amadeus</div>
 					<h1 className="hero-title">
-						Find the best flights<br />
-						<span>at real-time prices</span>
+						Encuentra los mejores vuelos<br />
+						<span>con precios en tiempo real</span>
 					</h1>
 					<p className="hero-subtitle">
-						Search and compare flights across top airlines.
-						Real prices, live availability.
+						Busca y compara vuelos entre aerolíneas principales.
+						Precios reales y disponibilidad en vivo.
 					</p>
 				</div>
 			</div>
@@ -49,7 +49,7 @@ export default function App() {
 							padding: '0.6rem 2rem',
 							borderRadius: 'var(--radius-full)',
 							background: activeTab === 'search' ? 'var(--accent-indigo)' : 'var(--bg-glass)',
-							color: activeTab === 'search' ? '#fff' : 'var(--text-secondary)',
+							color: activeTab === 'search' ? 'var(--bg-primary)' : 'var(--text-secondary)',
 							border: '1px solid var(--border-color)',
 							cursor: 'pointer',
 							fontSize: '0.9rem',
@@ -57,7 +57,7 @@ export default function App() {
 							transition: 'all 0.2s'
 						}}
 					>
-						Live Search
+						Búsqueda en vivo
 					</button>
 					<button
 						onClick={() => setActiveTab('track')}
@@ -65,7 +65,7 @@ export default function App() {
 							padding: '0.6rem 2rem',
 							borderRadius: 'var(--radius-full)',
 							background: activeTab === 'track' ? 'var(--accent-indigo)' : 'var(--bg-glass)',
-							color: activeTab === 'track' ? '#fff' : 'var(--text-secondary)',
+							color: activeTab === 'track' ? 'var(--bg-primary)' : 'var(--text-secondary)',
 							border: '1px solid var(--border-color)',
 							cursor: 'pointer',
 							fontSize: '0.9rem',
@@ -73,7 +73,7 @@ export default function App() {
 							transition: 'all 0.2s'
 						}}
 					>
-						Hourly Tracker
+						Monitor por hora
 					</button>
 				</div>
 
@@ -93,7 +93,7 @@ export default function App() {
 						<span className="footer-divider" />
 						<span>JetSMART</span>
 						<span className="footer-divider" />
-						<span>Data via Amadeus API</span>
+						<span>Datos vía API de Amadeus</span>
 					</div>
 				</div>
 			</footer>

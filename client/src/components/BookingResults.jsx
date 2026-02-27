@@ -10,7 +10,7 @@ function formatCOP(amount) {
 }
 
 function formatEUR(amount) {
-	return new Intl.NumberFormat('en-US', {
+	return new Intl.NumberFormat('es-ES', {
 		style: 'currency',
 		currency: 'EUR',
 		minimumFractionDigits: 0,
@@ -59,10 +59,10 @@ export default function BookingResults({ results, isLoading, hasSearched }) {
 		return (
 			<div className="empty-state">
 				<div className="empty-state-icon">🔍</div>
-				<div className="empty-state-title">No flights found</div>
+				<div className="empty-state-title">No se encontraron vuelos</div>
 				<div className="empty-state-text">
-					No availability for this route on the selected date.<br />
-					Try a different date or route.
+					No hay disponibilidad para esta ruta en la fecha seleccionada.<br />
+					Prueba otra fecha o ruta.
 				</div>
 			</div>
 		);
@@ -73,9 +73,9 @@ export default function BookingResults({ results, isLoading, hasSearched }) {
 			<div className="section-header" style={{ flexWrap: 'wrap', gap: 'var(--space-md)' }}>
 				<div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)' }}>
 					<h2 className="section-title">
-						Available Flights
+						Vuelos disponibles
 					</h2>
-					<span className="section-badge">{filteredResults.length} options</span>
+					<span className="section-badge">{filteredResults.length} opciones</span>
 				</div>
 
 				{/* Time Filters */}
@@ -84,32 +84,32 @@ export default function BookingResults({ results, isLoading, hasSearched }) {
 						className={`time-chip ${timeFilter === 'all' ? 'active' : ''}`}
 						onClick={() => setTimeFilter('all')}
 					>
-						All
+						Todos
 					</button>
 					<button
 						className={`time-chip ${timeFilter === 'madrugada' ? 'active' : ''}`}
 						onClick={() => setTimeFilter('madrugada')}
 					>
-						Madrugada (&lt;6 AM)
+						Madrugada (&lt;6 a. m.)
 					</button>
 					<button
 						className={`time-chip ${timeFilter === 'otro' ? 'active' : ''}`}
 						onClick={() => setTimeFilter('otro')}
 					>
-						Día (6 AM - 8 PM)
+						Día (6 a. m. - 8 p. m.)
 					</button>
 					<button
 						className={`time-chip ${timeFilter === 'noche' ? 'active' : ''}`}
 						onClick={() => setTimeFilter('noche')}
 					>
-						Noche (&gt;8 PM)
+						Noche (&gt;8 p. m.)
 					</button>
 				</div>
 			</div>
 
 			{filteredResults.length === 0 ? (
 				<div className="empty-state" style={{ padding: 'var(--space-xl)' }}>
-					<div className="empty-state-text">No flights match the selected time filter.</div>
+					<div className="empty-state-text">No hay vuelos para el filtro de horario seleccionado.</div>
 				</div>
 			) : (
 				<div className="flight-list">
@@ -158,7 +158,7 @@ export default function BookingResults({ results, isLoading, hasSearched }) {
 								<div className="flight-fare">
 									<div className="flight-fare-type">{flight.fareType}</div>
 									<div className={`flight-baggage ${flight.baggageIncluded ? 'included' : ''}`}>
-										{flight.baggageIncluded ? '🎒 Bag Included' : '👛 Carry-on Only'}
+										{flight.baggageIncluded ? '🎒 Equipaje incluido' : '👛 Solo equipaje de mano'}
 									</div>
 								</div>
 
@@ -171,7 +171,7 @@ export default function BookingResults({ results, isLoading, hasSearched }) {
 										≈ {formatEUR(flight.priceEur)}
 									</div>
 									<div className={`flight-seats ${fewSeats ? 'few' : 'ok'}`}>
-										{fewSeats ? `⚡ ${flight.availableSeats} left` : `${flight.availableSeats} seats`}
+										{fewSeats ? `⚡ Quedan ${flight.availableSeats}` : `${flight.availableSeats} asientos`}
 									</div>
 								</div>
 
@@ -179,9 +179,9 @@ export default function BookingResults({ results, isLoading, hasSearched }) {
 								<div className="flight-action">
 									<button
 										className="book-btn"
-										onClick={() => alert(`Booking flow for ${flight.flightNumber} would start here!`)}
+										onClick={() => alert(`Aquí iniciaría el flujo de reserva para ${flight.flightNumber}.`)}
 									>
-										Book →
+										Reservar →
 									</button>
 								</div>
 							</div>

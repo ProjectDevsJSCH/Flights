@@ -18,7 +18,7 @@ export default function BookingSearchForm({ cities, onSearch, isLoading }) {
 	const handleSubmit = (e) => {
 		e.preventDefault();
 		if (origin === destination) {
-			alert('Origin and destination cannot be the same');
+			alert('El origen y el destino no pueden ser iguales');
 			return;
 		}
 		onSearch({ origin, destination, date, max: maxOption });
@@ -31,7 +31,7 @@ export default function BookingSearchForm({ cities, onSearch, isLoading }) {
 
 					{/* Origin */}
 					<div>
-						<label className="search-label">Origin</label>
+						<label className="search-label">Origen</label>
 						<div className="select-wrapper">
 							<select
 								value={origin}
@@ -53,8 +53,8 @@ export default function BookingSearchForm({ cities, onSearch, isLoading }) {
 							type="button"
 							className="swap-btn"
 							onClick={handleSwap}
-							title="Swap origin and destination"
-							aria-label="Swap origin and destination"
+							title="Intercambiar origen y destino"
+							aria-label="Intercambiar origen y destino"
 						>
 							⇄
 						</button>
@@ -62,7 +62,7 @@ export default function BookingSearchForm({ cities, onSearch, isLoading }) {
 
 					{/* Destination */}
 					<div>
-						<label className="search-label">Destination</label>
+						<label className="search-label">Destino</label>
 						<div className="select-wrapper">
 							<select
 								value={destination}
@@ -80,7 +80,7 @@ export default function BookingSearchForm({ cities, onSearch, isLoading }) {
 
 					{/* Date */}
 					<div>
-						<label className="search-label">Departure Date</label>
+						<label className="search-label">Fecha de salida</label>
 						<input
 							type="date"
 							value={date}
@@ -94,17 +94,17 @@ export default function BookingSearchForm({ cities, onSearch, isLoading }) {
 
 					{/* Max Results */}
 					<div>
-						<label className="search-label">Max Results</label>
+						<label className="search-label">Máximo de resultados</label>
 						<div className="select-wrapper">
 							<select
 								value={maxOption}
 								onChange={(e) => setMaxOption(e.target.value)}
 								className="search-input"
 							>
-								<option value="15">15 options</option>
-								<option value="50">50 options</option>
-								<option value="100">100 options</option>
-								<option value="250">250 options</option>
+								<option value="15">15 opciones</option>
+								<option value="50">50 opciones</option>
+								<option value="100">100 opciones</option>
+								<option value="250">250 opciones</option>
 							</select>
 						</div>
 					</div>
@@ -117,7 +117,7 @@ export default function BookingSearchForm({ cities, onSearch, isLoading }) {
 							disabled={isLoading}
 						>
 							<span className="search-btn-icon">{isLoading ? '⟳' : '✈'}</span>
-							{isLoading ? 'Searching...' : 'Search Flights'}
+							{isLoading ? 'Buscando...' : 'Buscar vuelos'}
 						</button>
 					</div>
 

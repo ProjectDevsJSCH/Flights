@@ -16,7 +16,7 @@ export default function BookingView({ cities }) {
 			setResults(data.results);
 		} catch (err) {
 			console.error('Failed to search flights:', err);
-			alert('Error searching for flights');
+			alert('Error al buscar vuelos');
 		} finally {
 			setIsLoading(false);
 		}

@@ -45,10 +45,14 @@ function getDatesInRange(startDateStr, endDateStr) {
 	return dates;
 }
 
-// Background Job - Runs every hour at minute 0
-cron.schedule('0 * * * *', async () => {
-	console.log('🕒 Running hourly background flight tracker...');
-	await runTrackerJob();
+// Background Job - Runs at 06:00, 13:00, and 22:30
+const trackerSchedules = ['0 6,13 * * *', '30 22 * * *'];
+
+trackerSchedules.forEach((schedule) => {
+	cron.schedule(schedule, async () => {
+		console.log(`🕒 Running scheduled background flight tracker (${schedule})...`);
+		await runTrackerJob();
+	});
 });
 
 async function runTrackerJob() {
