@@ -17,5 +17,5 @@ COPY . .
 
 EXPOSE 3001
 
-# Command to run (wait for DB in compose usually, but here we just start)
-CMD ["npm", "start"]
+# Wait for DB to be ready, then push schema and start the app
+CMD ["sh", "-c", "echo 'Waiting for database...' && until npx prisma db push --skip-generate 2>/dev/null; do echo 'DB not ready, retrying in 3s...'; sleep 3; done && echo 'Database ready!' && npm start"]

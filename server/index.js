@@ -176,6 +176,7 @@ app.post('/api/tracking/config', async (req, res) => {
 
 		res.json(newConfig);
 	} catch (error) {
+		console.error('Error saving tracking config:', error);
 		res.status(500).json({ error: 'Database error while saving config' });
 	}
 });
