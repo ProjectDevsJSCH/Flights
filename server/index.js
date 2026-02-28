@@ -181,6 +181,24 @@ app.post('/api/tracking/config', async (req, res) => {
 	}
 });
 
+// Delete/deactivate active tracking config
+app.delete('/api/tracking/config', async (req, res) => {
+	try {
+		const updated = await prisma.trackingConfig.updateMany({
+			where: { isActive: true },
+			data: { isActive: false }
+		});
+		if (updated.count === 0) {
+			return res.status(404).json({ error: 'No active tracking config found' });
+		}
+		console.log('🛑 Tracking config deactivated.');
+		res.json({ message: 'Tracking stopped', deactivated: updated.count });
+	} catch (error) {
+		console.error('Error deactivating tracking config:', error);
+		res.status(500).json({ error: 'Database error while deactivating config' });
+	}
+});
+
 // Get price history for active config
 app.get('/api/tracking/history', async (req, res) => {
 	try {

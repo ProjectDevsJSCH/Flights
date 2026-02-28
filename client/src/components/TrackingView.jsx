@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export default function TrackingView({ cities = [] }) {
 	const [config, setConfig] = useState(null);
 	const [history, setHistory] = useState({});
 	const [isLoading, setIsLoading] = useState(true);
+	const pollingRef = useRef(null);
 
 	// Form specific state
 	const [origin, setOrigin] = useState('BOG');
@@ -15,11 +16,26 @@ export default function TrackingView({ cities = [] }) {
 
 	useEffect(() => {
 		fetchHistory();
+		return () => stopPolling();
 	}, []);
 
-	async function fetchHistory() {
+	function startPolling() {
+		stopPolling();
+		pollingRef.current = setInterval(() => {
+			fetchHistory(true);
+		}, 5000);
+	}
+
+	function stopPolling() {
+		if (pollingRef.current) {
+			clearInterval(pollingRef.current);
+			pollingRef.current = null;
+		}
+	}
+
+	async function fetchHistory(silent = false) {
 		try {
-			setIsLoading(true);
+			if (!silent) setIsLoading(true);
 			const res = await fetch('/api/tracking/history');
 			if (res.ok) {
 				const data = await res.json();
@@ -30,12 +46,16 @@ export default function TrackingView({ cities = [] }) {
 					setDestination(data.config.destination);
 					setStartDate(data.config.startDate);
 					setEndDate(data.config.endDate);
+					// Stop polling once we have data
+					if (Object.keys(data.history).length > 0) {
+						stopPolling();
+					}
 				}
 			}
 		} catch (error) {
 			console.error("Failed to load tracking config", error);
 		} finally {
-			setIsLoading(false);
+			if (!silent) setIsLoading(false);
 		}
 	}
 
@@ -68,10 +88,29 @@ export default function TrackingView({ cities = [] }) {
 				body: JSON.stringify({ origin, destination, startDate, endDate })
 			});
 			if (res.ok) {
-				alert('Configuración actualizada. El proceso en segundo plano se ejecutará cada hora.');
+				alert('Configuración actualizada. El proceso en segundo plano buscará precios automáticamente.');
 				fetchHistory(); // refresh
+				startPolling(); // poll until data arrives
 			} else {
 				alert('Error al actualizar la configuración');
+			}
+		} catch (err) {
+			console.error(err);
+		} finally {
+			setIsLoading(false);
+		}
+	};
+
+	const handleStopTracking = async () => {
+		if (!confirm('¿Detener el monitoreo de esta ruta? El historial se conservará.')) return;
+		try {
+			setIsLoading(true);
+			const res = await fetch('/api/tracking/config', { method: 'DELETE' });
+			if (res.ok) {
+				setConfig(null);
+				setHistory({});
+			} else {
+				alert('Error al detener el monitoreo');
 			}
 		} catch (err) {
 			console.error(err);
@@ -88,10 +127,24 @@ export default function TrackingView({ cities = [] }) {
 		}).format(amount);
 	};
 
-	const formatTime = (isoString) => {
+	const formatDate = (dateStr) => {
+		const [year, month, day] = dateStr.split('-').map(Number);
+		const date = new Date(year, month - 1, day);
+		return date.toLocaleDateString('es-CO', {
+			day: 'numeric',
+			month: 'long',
+			year: 'numeric'
+		});
+	};
+
+	const formatDateTime = (isoString) => {
 		return new Date(isoString).toLocaleString('es-CO', {
-			month: 'short', day: 'numeric',
-			hour: 'numeric', minute: '2-digit', hour12: true
+			day: 'numeric',
+			month: 'long',
+			year: 'numeric',
+			hour: 'numeric',
+			minute: '2-digit',
+			hour12: true
 		});
 	};
 
@@ -163,9 +216,28 @@ export default function TrackingView({ cities = [] }) {
 			{/* History Display */}
 			{config && (
 				<div className="tracking-history">
-					<h3 style={{ marginBottom: '1rem', color: 'var(--text-primary)' }}>
-						Precios esperados más bajos para {config.origin} → {config.destination}
-					</h3>
+					<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+						<h3 style={{ margin: 0, color: 'var(--text-primary)' }}>
+							Precios esperados más bajos para {config.origin} → {config.destination}
+						</h3>
+						<button
+							onClick={handleStopTracking}
+							disabled={isLoading}
+							style={{
+								background: 'var(--system-danger, #e74c3c)',
+								color: '#fff',
+								border: 'none',
+								padding: '0.5rem 1.2rem',
+								borderRadius: 'var(--radius-md, 8px)',
+								cursor: 'pointer',
+								fontSize: '0.85rem',
+								fontWeight: '600',
+								whiteSpace: 'nowrap'
+							}}
+						>
+							🛑 Detener monitoreo
+						</button>
+					</div>
 
 					{Object.keys(history).length === 0 ? (
 						<p style={{ color: 'var(--text-muted)' }}>Esperando que el monitor obtenga datos...</p>
@@ -180,16 +252,24 @@ export default function TrackingView({ cities = [] }) {
 
 								return (
 									<div key={flightDate} style={{ background: 'var(--bg-card)', padding: '1rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-										<div>
-											<strong style={{ display: 'block', fontSize: '1.2rem', marginBottom: '4px' }}>Fecha: {flightDate}</strong>
-											<span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Mejor opción: {best?.airline} a las {best?.departureTime}</span>
+										<div style={{ flex: 1 }}>
+											<strong style={{ display: 'block', fontSize: '1.1rem', marginBottom: '4px', textTransform: 'capitalize' }}>
+												📅 {formatDate(flightDate)}
+											</strong>
+											<span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Mejor opción: {best?.airline}</span>
+										</div>
+										<div style={{ textAlign: 'center', padding: '0 1.5rem' }}>
+											<div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Salida</div>
+											<div style={{ fontSize: '1.6rem', fontWeight: 'bold', color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums' }}>
+												🕐 {best?.departureTime}
+											</div>
 										</div>
 										<div style={{ textAlign: 'right' }}>
 											<div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: 'var(--system-success)' }}>
 												{formatCOP(latest.cheapestPrice)}
 											</div>
-											<div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-												Última revisión: {formatTime(latest.recordedAt)}
+											<div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'capitalize' }}>
+												Última revisión: {formatDateTime(latest.recordedAt)}
 											</div>
 										</div>
 									</div>
