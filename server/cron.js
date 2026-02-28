@@ -2,6 +2,7 @@ const cron = require('node-cron');
 const { PrismaClient } = require('@prisma/client');
 const Amadeus = require('amadeus');
 const prisma = new PrismaClient();
+const cities = require('./data/cities');
 
 const isProd = process.env.NODE_ENV === 'production';
 const amadeus = new Amadeus({
@@ -9,6 +10,46 @@ const amadeus = new Amadeus({
 	clientSecret: isProd ? process.env.AMADEUS_CLIENT_SECRET_PROD : process.env.AMADEUS_CLIENT_SECRET_TEST,
 	hostname: isProd ? 'production' : 'test'
 });
+
+// ---- Telegram Notification ----
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+
+function getCityName(code) {
+	const city = cities.find(c => c.code === code);
+	return city ? city.city : code;
+}
+
+function formatCOP(value) {
+	return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(value);
+}
+
+async function sendTelegramMessage(text) {
+	if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
+		console.log('⚠️  Telegram not configured, skipping notification.');
+		return;
+	}
+	try {
+		const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+		const res = await fetch(url, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				chat_id: TELEGRAM_CHAT_ID,
+				text,
+				parse_mode: 'HTML',
+			}),
+		});
+		if (!res.ok) {
+			const err = await res.text();
+			console.error('Telegram API error:', err);
+		} else {
+			console.log('📨 Telegram notification sent.');
+		}
+	} catch (err) {
+		console.error('Failed to send Telegram message:', err.message);
+	}
+}
 
 // Fetch EUR to COP rate
 let rateCache = { rate: null, fetchedAt: null };
@@ -93,6 +134,13 @@ async function runTrackerJob() {
 					const segment = cheapestOffer.itineraries?.[0]?.segments?.[0];
 					const depTimeRaw = segment?.departure?.at;
 					const departureTime = depTimeRaw ? new Date(depTimeRaw).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }) : '00:00';
+					const airlineCode = segment?.carrierCode || 'Unknown';
+
+					// Look up previous cheapest price for this config+date
+					const previousRecord = await prisma.priceHistory.findFirst({
+						where: { configId: config.id, dateChecked: date },
+						orderBy: { recordedAt: 'desc' },
+					});
 
 					await prisma.priceHistory.create({
 						data: {
@@ -100,12 +148,33 @@ async function runTrackerJob() {
 							dateChecked: date,
 							cheapestPrice: copPrice,
 							currency: "COP",
-							airline: segment?.carrierCode || 'Unknown',
+							airline: airlineCode,
 							departureTime: departureTime,
 							availableSeats: cheapestOffer.numberOfBookableSeats || 0
 						}
 					});
 					console.log(`Saved lowest price for ${date}: COP ${copPrice}`);
+
+					// Send Telegram alert if price dropped
+					if (previousRecord && copPrice < previousRecord.cheapestPrice) {
+						const diff = previousRecord.cheapestPrice - copPrice;
+						const pctDrop = ((diff / previousRecord.cheapestPrice) * 100).toFixed(1);
+						const originCity = getCityName(config.origin);
+						const destCity = getCityName(config.destination);
+
+						const message =
+							`✈️ <b>¡Precio más bajo encontrado!</b>\n\n` +
+							`🛫 <b>${originCity}</b> (${config.origin}) → <b>${destCity}</b> (${config.destination})\n` +
+							`📅 Fecha: <b>${date}</b>\n` +
+							`🕐 Salida: ${departureTime}\n` +
+							`🏷️ Aerolínea: ${airlineCode}\n\n` +
+							`💰 Precio anterior: ${formatCOP(previousRecord.cheapestPrice)}\n` +
+							`💰 <b>Precio actual: ${formatCOP(copPrice)}</b>\n` +
+							`📉 Bajó <b>${formatCOP(diff)}</b> (−${pctDrop}%)\n` +
+							`💺 Asientos disponibles: ${cheapestOffer.numberOfBookableSeats || '?'}`;
+
+						await sendTelegramMessage(message);
+					}
 				} catch (apiError) {
 					console.error(`Amadeus API Error for date ${date}:`, apiError.response ? apiError.response.body : apiError.message);
 				}
