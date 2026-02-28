@@ -96,6 +96,51 @@ trackerSchedules.forEach((schedule) => {
 	});
 });
 
+// Daily API usage report - Runs at 23:00
+cron.schedule('0 23 * * *', async () => {
+	console.log('📊 Sending daily API usage report...');
+	try {
+		const now = new Date();
+		const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+		const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+		const monthName = now.toLocaleDateString('es-CO', { month: 'long' });
+
+		const [monthlyTotal, dailyTotal, bySource] = await Promise.all([
+			prisma.apiUsage.count({ where: { calledAt: { gte: startOfMonth } } }),
+			prisma.apiUsage.count({ where: { calledAt: { gte: startOfDay } } }),
+			prisma.apiUsage.groupBy({
+				by: ['source'],
+				where: { calledAt: { gte: startOfMonth } },
+				_count: true
+			})
+		]);
+
+		const isProd = process.env.NODE_ENV === 'production';
+		const monthlyLimit = isProd ? 'Sin límite fijo' : '2,000';
+		const remaining = !isProd ? (2000 - monthlyTotal) : '—';
+		const pctUsed = !isProd ? ((monthlyTotal / 2000) * 100).toFixed(1) : '—';
+
+		const searchCalls = bySource.find(s => s.source === 'search')?._count?._all || 0;
+		const trackerCalls = bySource.find(s => s.source === 'tracker')?._count?._all || 0;
+
+		const message =
+			`📊 <b>Reporte diario de uso API</b>\n\n` +
+			`📅 ${now.toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })}\n` +
+			`🌐 Entorno: <b>${isProd ? 'Producción' : 'Test'}</b>\n\n` +
+			`📈 <b>Hoy:</b> ${dailyTotal} llamadas\n` +
+			`📈 <b>Este mes (${monthName}):</b> ${monthlyTotal} llamadas\n` +
+			`🔒 Límite mensual: ${monthlyLimit}\n` +
+			`${!isProd ? `⏳ Restantes: <b>${remaining}</b> (${pctUsed}% usado)\n` : ''}\n` +
+			`📋 <b>Desglose del mes:</b>\n` +
+			`  🔍 Búsquedas manuales: ${searchCalls}\n` +
+			`  🕒 Monitor automático: ${trackerCalls}`;
+
+		await sendTelegramMessage(message);
+	} catch (err) {
+		console.error('Error sending usage report:', err);
+	}
+});
+
 async function runTrackerJob() {
 	try {
 		const configs = await prisma.trackingConfig.findMany({ where: { isActive: true } });
@@ -118,8 +163,13 @@ async function runTrackerJob() {
 						destinationLocationCode: config.destination.toUpperCase(),
 						departureDate: date,
 						adults: '1',
-						max: 15 // Limit to 15 to find cheapest fast
+						max: 15
 					});
+
+					// Track API usage
+					await prisma.apiUsage.create({
+						data: { source: 'tracker', endpoint: 'flightOffersSearch' }
+					}).catch(() => {});
 
 					const offers = response.data;
 					if (!offers || offers.length === 0) continue;

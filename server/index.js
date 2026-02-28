@@ -77,6 +77,11 @@ app.get('/api/search', async (req, res) => {
 			max: maxResults,
 		});
 
+		// Track API usage
+		await prisma.apiUsage.create({
+			data: { source: 'search', endpoint: 'flightOffersSearch' }
+		}).catch(() => {});
+
 		const flightOffers = response.data;
 		const dictionaries = response.result.dictionaries;
 
@@ -231,6 +236,46 @@ app.get('/api/tracking/history', async (req, res) => {
 		res.json({ config, history: grouped });
 	} catch (error) {
 		res.status(500).json({ error: 'Database error fetching history' });
+	}
+});
+
+// Get API usage stats
+app.get('/api/usage', async (req, res) => {
+	try {
+		const now = new Date();
+		const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+		const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+		const [monthlyTotal, dailyTotal, monthlyBySource] = await Promise.all([
+			prisma.apiUsage.count({ where: { calledAt: { gte: startOfMonth } } }),
+			prisma.apiUsage.count({ where: { calledAt: { gte: startOfDay } } }),
+			prisma.apiUsage.groupBy({
+				by: ['source'],
+				where: { calledAt: { gte: startOfMonth } },
+				_count: true
+			})
+		]);
+
+		const isProd = process.env.NODE_ENV === 'production';
+		const monthlyLimit = isProd ? null : 2000;
+		const remaining = monthlyLimit ? monthlyLimit - monthlyTotal : null;
+
+		const bySource = monthlyBySource.map(s => ({
+			source: s.source,
+			count: s._count?._all || 0
+		}));
+
+		res.json({
+			monthlyTotal,
+			dailyTotal,
+			monthlyLimit,
+			remaining,
+			bySource,
+			environment: isProd ? 'production' : 'test'
+		});
+	} catch (error) {
+		console.error('Error fetching API usage:', error);
+		res.status(500).json({ error: 'Failed to fetch usage stats' });
 	}
 });
 

@@ -33,3 +33,10 @@ model PriceHistory {
 
   config TrackingConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
 }
+
+model ApiUsage {
+  id        Int      @id @default(autoincrement())
+  source    String   // "search" | "tracker"
+  endpoint  String   // Amadeus endpoint called
+  calledAt  DateTime @default(now())
+}
