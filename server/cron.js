@@ -155,7 +155,7 @@ async function runTrackerJob() {
 					});
 					console.log(`Saved lowest price for ${date}: COP ${copPrice}`);
 
-					// Send Telegram alert if price dropped
+					// Send Telegram only on price drop
 					if (previousRecord && copPrice < previousRecord.cheapestPrice) {
 						const diff = previousRecord.cheapestPrice - copPrice;
 						const pctDrop = ((diff / previousRecord.cheapestPrice) * 100).toFixed(1);
@@ -189,7 +189,10 @@ async function runTrackerJob() {
 	}
 }
 
-// Export a manual trigger for testing
+// Export for use in index.js
 module.exports = {
-	runTrackerJob
+	runTrackerJob,
+	sendTelegramMessage,
+	getCityName,
+	formatCOP
 };

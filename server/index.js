@@ -170,8 +170,17 @@ app.post('/api/tracking/config', async (req, res) => {
 			data: { origin, destination, startDate, endDate, isActive: true }
 		});
 
-		// Run job immediately to get initial data
-		const { runTrackerJob } = require('./cron');
+		// Notify via Telegram and run job immediately
+		const { runTrackerJob, sendTelegramMessage, getCityName } = require('./cron');
+		const originCity = getCityName(origin);
+		const destCity = getCityName(destination);
+		sendTelegramMessage(
+			`🆕 <b>Nuevo monitoreo activado</b>\n\n` +
+			`🛫 <b>${originCity}</b> (${origin}) → <b>${destCity}</b> (${destination})\n` +
+			`📅 Desde: <b>${startDate}</b>\n` +
+			`📅 Hasta: <b>${endDate}</b>\n\n` +
+			`Se buscarán los precios más bajos automáticamente.`
+		).catch(console.error);
 		runTrackerJob().catch(console.error);
 
 		res.json(newConfig);
