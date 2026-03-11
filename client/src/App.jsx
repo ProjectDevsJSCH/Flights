@@ -42,36 +42,16 @@ export default function App() {
 
 			<main className="app-container">
 				{/* Tab Navigation */}
-				<div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', paddingBottom: '1.5rem' }}>
+				<div className="tab-container">
 					<button
 						onClick={() => setActiveTab('search')}
-						style={{
-							padding: '0.6rem 2rem',
-							borderRadius: 'var(--radius-full)',
-							background: activeTab === 'search' ? 'var(--accent-indigo)' : 'var(--bg-glass)',
-							color: activeTab === 'search' ? 'var(--bg-primary)' : 'var(--text-secondary)',
-							border: '1px solid var(--border-color)',
-							cursor: 'pointer',
-							fontSize: '0.9rem',
-							fontWeight: 600,
-							transition: 'all 0.2s'
-						}}
+						className={`tab-btn ${activeTab === 'search' ? 'active' : ''}`}
 					>
 						Búsqueda en vivo
 					</button>
 					<button
 						onClick={() => setActiveTab('track')}
-						style={{
-							padding: '0.6rem 2rem',
-							borderRadius: 'var(--radius-full)',
-							background: activeTab === 'track' ? 'var(--accent-indigo)' : 'var(--bg-glass)',
-							color: activeTab === 'track' ? 'var(--bg-primary)' : 'var(--text-secondary)',
-							border: '1px solid var(--border-color)',
-							cursor: 'pointer',
-							fontSize: '0.9rem',
-							fontWeight: 600,
-							transition: 'all 0.2s'
-						}}
+						className={`tab-btn ${activeTab === 'track' ? 'active' : ''}`}
 					>
 						Monitor por hora
 					</button>

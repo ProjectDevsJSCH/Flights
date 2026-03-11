@@ -26,11 +26,11 @@ export default function BookingSearchForm({ cities, onSearch, isLoading }) {
 
 	return (
 		<div className="search-section">
-			<form className="glass-card" style={{ padding: 'var(--space-xl)' }} onSubmit={handleSubmit}>
+			<form className="glass-card" onSubmit={handleSubmit}>
 				<div className="search-form-grid">
 
 					{/* Origin */}
-					<div>
+					<div className="search-field">
 						<label className="search-label">Origen</label>
 						<div className="select-wrapper">
 							<select
@@ -48,20 +48,20 @@ export default function BookingSearchForm({ cities, onSearch, isLoading }) {
 					</div>
 
 					{/* Swap */}
-					<div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+					<div className="swap-btn-container">
 						<button
 							type="button"
 							className="swap-btn"
 							onClick={handleSwap}
-							title="Intercambiar origen y destino"
-							aria-label="Intercambiar origen y destino"
+							title="Intercambiar"
+							aria-label="Intercambiar"
 						>
 							⇄
 						</button>
 					</div>
 
 					{/* Destination */}
-					<div>
+					<div className="search-field">
 						<label className="search-label">Destino</label>
 						<div className="select-wrapper">
 							<select
@@ -79,7 +79,7 @@ export default function BookingSearchForm({ cities, onSearch, isLoading }) {
 					</div>
 
 					{/* Date */}
-					<div>
+					<div className="search-field">
 						<label className="search-label">Fecha de salida</label>
 						<input
 							type="date"
@@ -87,14 +87,13 @@ export default function BookingSearchForm({ cities, onSearch, isLoading }) {
 							onChange={(e) => setDate(e.target.value)}
 							min={new Date().toISOString().split('T')[0]}
 							className="search-input"
-							style={{ colorScheme: 'dark', cursor: 'pointer' }}
 							required
 						/>
 					</div>
 
 					{/* Max Results */}
-					<div>
-						<label className="search-label">Máximo de resultados</label>
+					<div className="search-field">
+						<label className="search-label">Máximo</label>
 						<div className="select-wrapper">
 							<select
 								value={maxOption}
@@ -104,20 +103,19 @@ export default function BookingSearchForm({ cities, onSearch, isLoading }) {
 								<option value="15">15 opciones</option>
 								<option value="50">50 opciones</option>
 								<option value="100">100 opciones</option>
-								<option value="250">250 opciones</option>
 							</select>
 						</div>
 					</div>
 
 					{/* Submit */}
-					<div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+					<div className="search-submit-container">
 						<button
 							type="submit"
 							className={`search-btn ${isLoading ? 'loading' : ''}`}
 							disabled={isLoading}
 						>
 							<span className="search-btn-icon">{isLoading ? '⟳' : '✈'}</span>
-							{isLoading ? 'Buscando...' : 'Buscar vuelos'}
+							{isLoading ? 'Buscando...' : 'Buscar'}
 						</button>
 					</div>
 

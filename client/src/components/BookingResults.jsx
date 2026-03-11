@@ -22,7 +22,7 @@ function SkeletonCard({ delay = 0 }) {
 	return (
 		<div
 			className="skeleton-card"
-			style={{ animationDelay: `${delay}ms`, height: '78px' }}
+			style={{ animationDelay: `${delay}ms` }}
 		/>
 	);
 }
@@ -70,11 +70,9 @@ export default function BookingResults({ results, isLoading, hasSearched }) {
 
 	return (
 		<div className="flight-board">
-			<div className="section-header" style={{ flexWrap: 'wrap', gap: 'var(--space-md)' }}>
-				<div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)' }}>
-					<h2 className="section-title">
-						Vuelos disponibles
-					</h2>
+			<div className="section-header">
+				<div className="section-header-title-group">
+					<h2 className="section-title">Vuelos disponibles</h2>
 					<span className="section-badge">{filteredResults.length} opciones</span>
 				</div>
 
@@ -90,19 +88,19 @@ export default function BookingResults({ results, isLoading, hasSearched }) {
 						className={`time-chip ${timeFilter === 'madrugada' ? 'active' : ''}`}
 						onClick={() => setTimeFilter('madrugada')}
 					>
-						Madrugada (&lt;6 a. m.)
+						Madrugada
 					</button>
 					<button
 						className={`time-chip ${timeFilter === 'otro' ? 'active' : ''}`}
 						onClick={() => setTimeFilter('otro')}
 					>
-						Día (6 a. m. - 8 p. m.)
+						Día
 					</button>
 					<button
 						className={`time-chip ${timeFilter === 'noche' ? 'active' : ''}`}
 						onClick={() => setTimeFilter('noche')}
 					>
-						Noche (&gt;8 p. m.)
+						Noche
 					</button>
 				</div>
 			</div>
@@ -128,7 +126,7 @@ export default function BookingResults({ results, isLoading, hasSearched }) {
 								<div className="flight-airline-info">
 									<div
 										className="flight-airline-dot"
-										style={{ background: flight.airlineColor || 'var(--accent-indigo)', color: flight.airlineColor || 'var(--accent-indigo)' }}
+										style={{ background: flight.airlineColor || 'var(--accent-indigo)' }}
 									/>
 									<div>
 										<div className="flight-number">{flight.flightNumber}</div>
@@ -138,17 +136,17 @@ export default function BookingResults({ results, isLoading, hasSearched }) {
 
 								{/* Route & Times */}
 								<div className="flight-route">
-									<div className="flight-times" style={{ textAlign: 'left' }}>
+									<div className="flight-times origin">
 										<div className="flight-time">{flight.departureTime}</div>
 										<div className="flight-city-code">{flight.origin.code}</div>
 									</div>
 
-									<div className="flight-route-line" style={{ maxWidth: '110px', margin: '0 var(--space-md)' }}>
-										<span className="flight-route-plane" style={{ top: '-10px' }}>✈</span>
+									<div className="flight-route-line">
+										<span className="flight-route-plane">✈</span>
 										<div className="flight-duration">{flight.duration}</div>
 									</div>
 
-									<div className="flight-times" style={{ textAlign: 'right' }}>
+									<div className="flight-times destination">
 										<div className="flight-time">{flight.arrivalTime}</div>
 										<div className="flight-city-code">{flight.destination.code}</div>
 									</div>
@@ -158,20 +156,20 @@ export default function BookingResults({ results, isLoading, hasSearched }) {
 								<div className="flight-fare">
 									<div className="flight-fare-type">{flight.fareType}</div>
 									<div className={`flight-baggage ${flight.baggageIncluded ? 'included' : ''}`}>
-										{flight.baggageIncluded ? '🎒 Equipaje incluido' : '👛 Solo equipaje de mano'}
+										{flight.baggageIncluded ? '🎒 Incluido' : '👛 Mano'}
 									</div>
 								</div>
 
 								{/* Price */}
 								<div className="flight-price-col">
-									<div className="flight-price">
-										{formatCOP(flight.priceCOP)}
+									<div>
+										<div className="flight-price">{formatCOP(flight.priceCOP)}</div>
+										<div className={`flight-seats ${fewSeats ? 'few' : 'ok'}`}>
+											{fewSeats ? `⚡ Quedan ${flight.availableSeats}` : `${flight.availableSeats} asientos`}
+										</div>
 									</div>
-									<div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '3px' }}>
+									<div className="flight-price-secondary">
 										≈ {formatEUR(flight.priceEur)}
-									</div>
-									<div className={`flight-seats ${fewSeats ? 'few' : 'ok'}`}>
-										{fewSeats ? `⚡ Quedan ${flight.availableSeats}` : `${flight.availableSeats} asientos`}
 									</div>
 								</div>
 
