@@ -12,7 +12,7 @@ export default function BookingView({ cities }) {
 		setIsLoading(true);
 		setHasSearched(true);
 		try {
-			const data = await searchFlights(searchParams.origin, searchParams.destination, searchParams.date);
+			const data = await searchFlights(searchParams.origin, searchParams.destination, searchParams.date, searchParams.max, searchParams.returnDate);
 			setResults(data.results);
 		} catch (err) {
 			console.error('Failed to search flights:', err);

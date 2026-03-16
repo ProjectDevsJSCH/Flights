@@ -6,8 +6,11 @@ export async function fetchCities() {
 	return res.json();
 }
 
-export async function searchFlights(origin, destination, date, max = 50) {
+export async function searchFlights(origin, destination, date, max = 50, returnDate = null) {
 	const params = new URLSearchParams({ origin, destination, date, max });
+	if (returnDate) {
+		params.append('returnDate', returnDate);
+	}
 	const res = await fetch(`${API_BASE}/search?${params.toString()}`);
 	if (!res.ok) throw new Error('Failed to search flights');
 	return res.json();

@@ -9,14 +9,6 @@ function formatCOP(amount) {
 	}).format(amount);
 }
 
-function formatEUR(amount) {
-	return new Intl.NumberFormat('es-ES', {
-		style: 'currency',
-		currency: 'EUR',
-		minimumFractionDigits: 0,
-		maximumFractionDigits: 0,
-	}).format(amount);
-}
 
 function SkeletonCard({ delay = 0 }) {
 	return (
@@ -135,21 +127,44 @@ export default function BookingResults({ results, isLoading, hasSearched }) {
 								</div>
 
 								{/* Route & Times */}
-								<div className="flight-route">
-									<div className="flight-times origin">
-										<div className="flight-time">{flight.departureTime}</div>
-										<div className="flight-city-code">{flight.origin.code}</div>
+								<div className="flight-route-container" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flex: 2 }}>
+									{/* Outbound */}
+									<div className="flight-route">
+										<div className="flight-times origin">
+											<div className="flight-time">{flight.departureTime}</div>
+											<div className="flight-city-code">{flight.origin.code}</div>
+										</div>
+
+										<div className="flight-route-line">
+											<span className="flight-route-plane" style={{ transform: 'rotate(0deg)' }}>✈</span>
+											<div className="flight-duration">{flight.duration}</div>
+										</div>
+
+										<div className="flight-times destination">
+											<div className="flight-time">{flight.arrivalTime}</div>
+											<div className="flight-city-code">{flight.destination.code}</div>
+										</div>
 									</div>
 
-									<div className="flight-route-line">
-										<span className="flight-route-plane">✈</span>
-										<div className="flight-duration">{flight.duration}</div>
-									</div>
+									{/* Inbound (If round trip) */}
+									{flight.returnFlight && (
+										<div className="flight-route" style={{ borderTop: '1px dashed var(--border-color)', paddingTop: '1rem' }}>
+											<div className="flight-times origin">
+												<div className="flight-time">{flight.returnFlight.departureTime}</div>
+												<div className="flight-city-code">{flight.returnFlight.origin.code}</div>
+											</div>
 
-									<div className="flight-times destination">
-										<div className="flight-time">{flight.arrivalTime}</div>
-										<div className="flight-city-code">{flight.destination.code}</div>
-									</div>
+											<div className="flight-route-line">
+												<span className="flight-route-plane" style={{ transform: 'rotate(180deg)' }}>✈</span>
+												<div className="flight-duration">{flight.returnFlight.duration}</div>
+											</div>
+
+											<div className="flight-times destination">
+												<div className="flight-time">{flight.returnFlight.arrivalTime}</div>
+												<div className="flight-city-code">{flight.returnFlight.destination.code}</div>
+											</div>
+										</div>
+									)}
 								</div>
 
 								{/* Fare */}
@@ -168,12 +183,9 @@ export default function BookingResults({ results, isLoading, hasSearched }) {
 											{fewSeats ? `⚡ Quedan ${flight.availableSeats}` : `${flight.availableSeats} asientos`}
 										</div>
 									</div>
-									<div className="flight-price-secondary">
-										≈ {formatEUR(flight.priceEur)}
-									</div>
 								</div>
 
-								{/* Action */}
+								{/* Action
 								<div className="flight-action">
 									<button
 										className="book-btn"
@@ -181,7 +193,7 @@ export default function BookingResults({ results, isLoading, hasSearched }) {
 									>
 										Reservar →
 									</button>
-								</div>
+								</div> */}
 							</div>
 						);
 					})}

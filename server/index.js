@@ -58,7 +58,7 @@ app.get('/api/cities', (req, res) => {
 
 // Search flight inventory for booking (Using Amadeus API)
 app.get('/api/search', async (req, res) => {
-	const { origin, destination, date, max: maxParam } = req.query;
+	const { origin, destination, date, returnDate, max: maxParam } = req.query;
 	const maxResults = Math.min(parseInt(maxParam) || 50, 250);
 
 	if (!origin || !destination || !date) {
@@ -69,13 +69,19 @@ app.get('/api/search', async (req, res) => {
 		const originCity = cities.find(c => c.code === origin.toUpperCase());
 		const destCity = cities.find(c => c.code === destination.toUpperCase());
 
-		const response = await amadeus.shopping.flightOffersSearch.get({
+		const searchParams = {
 			originLocationCode: origin.toUpperCase(),
 			destinationLocationCode: destination.toUpperCase(),
 			departureDate: date,
 			adults: '1',
 			max: maxResults,
-		});
+		};
+
+		if (returnDate) {
+			searchParams.returnDate = returnDate;
+		}
+
+		const response = await amadeus.shopping.flightOffersSearch.get(searchParams);
 
 		// Track API usage
 		await prisma.apiUsage.create({
@@ -89,47 +95,83 @@ app.get('/api/search', async (req, res) => {
 		const eurToCop = await getEurToCopRate();
 
 		const inventory = flightOffers.map((offer) => {
-			const itinerary = offer.itineraries[0];
-			const segment = itinerary.segments[0];
+			const outboundItinerary = offer.itineraries[0];
+			const outboundSegment = outboundItinerary.segments[0];
 
-			const carrierCode = segment.carrierCode;
-			const airlineName = dictionaries?.carriers?.[carrierCode] || carrierCode;
+			const outboundCarrierCode = outboundSegment.carrierCode;
+			const outboundAirlineName = dictionaries?.carriers?.[outboundCarrierCode] || outboundCarrierCode;
 
-			const departureTimeFull = new Date(segment.departure.at);
-			const arrivalTimeFull = new Date(segment.arrival.at);
+			const depTimeFull = new Date(outboundSegment.departure.at);
+			const arrTimeFull = new Date(outboundSegment.arrival.at);
 
-			const depTime = departureTimeFull.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
-			const arrTime = arrivalTimeFull.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+			const depTime = depTimeFull.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+			const arrTime = arrTimeFull.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
 
-			const durationRaw = itinerary.duration.replace('PT', '');
-			const parsedDuration = durationRaw.toLowerCase().replace('h', 'h ').replace('m', 'm');
+			const outboundDuration = outboundItinerary.duration.replace('PT', '').toLowerCase().replace('h', 'h ').replace('m', 'm');
 
 			const priceEur = parseFloat(offer.price.total);
 			const priceCOP = Math.round(priceEur * eurToCop);
 
+			let returnFlight = null;
+
+			// Handle round-trip (if a second itinerary exists)
+			if (offer.itineraries.length > 1) {
+				const inboundItinerary = offer.itineraries[1];
+				const inboundSegment = inboundItinerary.segments[0];
+
+				const inboundCarrierCode = inboundSegment.carrierCode;
+				const inboundAirlineName = dictionaries?.carriers?.[inboundCarrierCode] || inboundCarrierCode;
+
+				const inboundDepTimeFull = new Date(inboundSegment.departure.at);
+				const inboundArrTimeFull = new Date(inboundSegment.arrival.at);
+
+				const inboundDepTime = inboundDepTimeFull.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+				const inboundArrTime = inboundArrTimeFull.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+				const inboundDuration = inboundItinerary.duration.replace('PT', '').toLowerCase().replace('h', 'h ').replace('m', 'm');
+
+				returnFlight = {
+					flightNumber: `${inboundSegment.carrierCode}${inboundSegment.number}`,
+					airline: inboundSegment.carrierCode,
+					airlineName: inboundAirlineName,
+					origin: {
+						code: inboundSegment.departure.iataCode,
+						city: destCity ? destCity.city : inboundSegment.departure.iataCode,
+					},
+					destination: {
+						code: inboundSegment.arrival.iataCode,
+						city: originCity ? originCity.city : inboundSegment.arrival.iataCode,
+					},
+					departureTime: inboundDepTime,
+					arrivalTime: inboundArrTime,
+					duration: inboundDuration,
+				};
+			}
+
 			return {
 				id: offer.id,
-				flightNumber: `${segment.carrierCode}${segment.number}`,
-				airline: segment.carrierCode,
-				airlineName,
+				flightNumber: `${outboundSegment.carrierCode}${outboundSegment.number}`,
+				airline: outboundSegment.carrierCode,
+				airlineName: outboundAirlineName,
 				origin: {
-					code: segment.departure.iataCode,
-					city: originCity ? originCity.city : segment.departure.iataCode,
+					code: outboundSegment.departure.iataCode,
+					city: originCity ? originCity.city : outboundSegment.departure.iataCode,
 				},
 				destination: {
-					code: segment.arrival.iataCode,
-					city: destCity ? destCity.city : segment.arrival.iataCode,
+					code: outboundSegment.arrival.iataCode,
+					city: destCity ? destCity.city : outboundSegment.arrival.iataCode,
 				},
 				date,
 				departureTime: depTime,
 				arrivalTime: arrTime,
-				duration: parsedDuration,
+				duration: outboundDuration,
 				priceEur,
 				priceCOP,
 				exchangeRate: eurToCop,
 				availableSeats: offer.numberOfBookableSeats,
 				fareType: offer.travelerPricings[0]?.fareDetailsBySegment[0]?.cabin || 'ECONOMY',
 				baggageIncluded: offer.pricingOptions?.includedCheckedBagsOnly || false,
+				returnDate,
+				returnFlight
 			};
 		});
 
@@ -145,19 +187,19 @@ app.get('/api/search', async (req, res) => {
 
 // --- Hourly Background Tracker Endpoints ---
 
-// Get active config
+// Get active configs
 app.get('/api/tracking/config', async (req, res) => {
 	try {
-		const config = await prisma.trackingConfig.findFirst({
+		const configs = await prisma.trackingConfig.findMany({
 			where: { isActive: true }
 		});
-		res.json(config);
+		res.json(configs);
 	} catch (error) {
 		res.status(500).json({ error: 'Database error' });
 	}
 });
 
-// Set/update tracking config (Only 1 active at a time for simplicity)
+// Set/update tracking config
 app.post('/api/tracking/config', async (req, res) => {
 	const { origin, destination, startDate, endDate } = req.body;
 	if (!origin || !destination || !startDate || !endDate) {
@@ -165,11 +207,6 @@ app.post('/api/tracking/config', async (req, res) => {
 	}
 
 	try {
-		// Deactivate all previous configs to protect quota (1 active only)
-		await prisma.trackingConfig.updateMany({
-			where: { isActive: true },
-			data: { isActive: false }
-		});
 
 		const newConfig = await prisma.trackingConfig.create({
 			data: { origin, destination, startDate, endDate, isActive: true }
@@ -195,17 +232,52 @@ app.post('/api/tracking/config', async (req, res) => {
 	}
 });
 
-// Delete/deactivate active tracking config
-app.delete('/api/tracking/config', async (req, res) => {
+// Edit tracking config
+app.put('/api/tracking/config/:id', async (req, res) => {
+	const configId = parseInt(req.params.id);
+	const { origin, destination, startDate, endDate } = req.body;
+	
+	if (isNaN(configId)) return res.status(400).json({ error: 'Invalid ID' });
+	if (!origin || !destination || !startDate || !endDate) {
+		return res.status(400).json({ error: 'Missing parameters' });
+	}
+
+	try {
+		// Clear old history since the date range or route changed
+		await prisma.priceHistory.deleteMany({
+			where: { configId: configId }
+		});
+
+		const updatedConfig = await prisma.trackingConfig.update({
+			where: { id: configId },
+			data: { origin, destination, startDate, endDate }
+		});
+
+		// Run job immediately to fetch initial prices for new range
+		const { runTrackerJob } = require('./cron');
+		runTrackerJob().catch(console.error);
+
+		res.json(updatedConfig);
+	} catch (error) {
+		console.error('Error updating tracking config:', error);
+		res.status(500).json({ error: 'Database error while updating config' });
+	}
+});
+
+// Delete/deactivate active tracking config by ID
+app.delete('/api/tracking/config/:id', async (req, res) => {
+	const configId = parseInt(req.params.id);
+	if (isNaN(configId)) return res.status(400).json({ error: 'Invalid ID' });
+
 	try {
 		const updated = await prisma.trackingConfig.updateMany({
-			where: { isActive: true },
+			where: { id: configId, isActive: true },
 			data: { isActive: false }
 		});
 		if (updated.count === 0) {
-			return res.status(404).json({ error: 'No active tracking config found' });
+			return res.status(404).json({ error: 'No active tracking config found with that ID' });
 		}
-		console.log('🛑 Tracking config deactivated.');
+		console.log(`🛑 Tracking config ${configId} deactivated.`);
 		res.json({ message: 'Tracking stopped', deactivated: updated.count });
 	} catch (error) {
 		console.error('Error deactivating tracking config:', error);
@@ -213,10 +285,10 @@ app.delete('/api/tracking/config', async (req, res) => {
 	}
 });
 
-// Get price history for active config
+// Get price history for active configs
 app.get('/api/tracking/history', async (req, res) => {
 	try {
-		const config = await prisma.trackingConfig.findFirst({
+		const activeConfigs = await prisma.trackingConfig.findMany({
 			where: { isActive: true },
 			include: {
 				priceHistory: {
@@ -224,16 +296,19 @@ app.get('/api/tracking/history', async (req, res) => {
 				}
 			}
 		});
-		if (!config) return res.json({ history: {} });
 
-		// Group by target flight date
-		const grouped = config.priceHistory.reduce((acc, curr) => {
-			if (!acc[curr.dateChecked]) acc[curr.dateChecked] = [];
-			acc[curr.dateChecked].push(curr);
-			return acc;
-		}, {});
+		const results = activeConfigs.map(config => {
+			const grouped = config.priceHistory.reduce((acc, curr) => {
+				if (!acc[curr.dateChecked]) acc[curr.dateChecked] = [];
+				acc[curr.dateChecked].push(curr);
+				return acc;
+			}, {});
+			
+			const { priceHistory, ...configData } = config;
+			return { config: configData, history: grouped };
+		});
 
-		res.json({ config, history: grouped });
+		res.json({ results });
 	} catch (error) {
 		res.status(500).json({ error: 'Database error fetching history' });
 	}
