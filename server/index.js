@@ -16,7 +16,7 @@ async function getEurToCopRate() {
 		return rateCache.rate;
 	}
 	try {
-		const res = await fetch('https://api.frankfurter.app/latest?from=EUR&to=COP');
+		const res = await fetch('https://open.er-api.com/v6/latest/EUR');
 		if (!res.ok) throw new Error('Rate fetch failed');
 		const data = await res.json();
 		const rate = data.rates.COP;
